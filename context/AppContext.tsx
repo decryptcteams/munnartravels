@@ -46,6 +46,16 @@ const defaultState: AppState = {
       image: 'https://images.unsplash.com/photo-1533630764720-d338ce2c9748?q=80&w=800&auto=format&fit=crop',
       duration: '3 Days / 2 Nights',
       location: 'Meesapulimala'
+    },
+    {
+      id: 'p4',
+      category: 'package',
+      title: 'Munnar Day Trip',
+      description: 'Quick sightseeing tour covering Mattupetty Dam, Echo Point, and Tea Museum. Perfect for short visits.',
+      price: 3500,
+      image: 'https://images.unsplash.com/photo-1624551136195-23737b56e6d1?q=80&w=800&auto=format&fit=crop',
+      duration: '1 Day Trip',
+      location: 'Munnar Town'
     }
   ],
   cars: [
@@ -102,15 +112,15 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [state, setState] = useState<AppState>(() => {
-    // Changed key to force refresh of data with new images
-    const saved = localStorage.getItem('munner_data_v4');
+    // Changed key to force refresh of data with new images and packages
+    const saved = localStorage.getItem('munner_data_v5');
     return saved ? JSON.parse(saved) : defaultState;
   });
 
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem('munner_data_v4', JSON.stringify(state));
+    localStorage.setItem('munner_data_v5', JSON.stringify(state));
   }, [state]);
 
   const addItem = (item: AnyItem) => {
