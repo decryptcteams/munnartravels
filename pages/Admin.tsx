@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { Trash2, Plus, Save, Settings, Package, Car as CarIcon, Home, Lock, LogOut, Search, X, MapPin, Calendar, Users, Fuel } from 'lucide-react';
+import { Trash2, Plus, Save, Settings, Package, Car as CarIcon, Home, Lock, LogOut, Search, X, MapPin, Calendar, Users, Fuel, Upload } from 'lucide-react';
 import { Category, AnyItem, TravelPackage, Car, Cottage } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -104,9 +104,25 @@ const Admin: React.FC = () => {
   const handleAddItem = (e: React.FormEvent) => {
     e.preventDefault();
     const id = Date.now().toString();
+    // Validate image is present
+    if (!newItem.image) {
+        alert("Please upload an image");
+        return;
+    }
     addItem({ ...newItem, id, category: activeTab } as AnyItem);
     setNewItem({ title: '', description: '', price: 0, image: '', category: activeTab as Category });
     setIsAddModalOpen(false);
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setNewItem({ ...newItem, image: reader.result as string });
+        };
+        reader.readAsDataURL(file);
+    }
   };
 
   const handleDelete = (id: string, category: Category) => {
@@ -200,9 +216,27 @@ const Admin: React.FC = () => {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Image URL</label>
-                        <input required type="url" placeholder="https://..." className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" 
-                            value={newItem.image} onChange={e => setNewItem({...newItem, image: e.target.value})} />
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Item Image</label>
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg h-[42px] relative hover:border-primary transition overflow-hidden">
+                           <input 
+                                type="file" 
+                                accept="image/*"
+                                onChange={handleImageUpload}
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                            />
+                            <div className="absolute inset-0 flex items-center px-4 text-gray-500 pointer-events-none">
+                                {newItem.image ? (
+                                    <span className="text-green-600 font-medium flex items-center gap-2">
+                                        <div className="w-5 h-5 rounded overflow-hidden bg-gray-200">
+                                            <img src={newItem.image} alt="prev" className="w-full h-full object-cover" />
+                                        </div>
+                                        Image Selected
+                                    </span>
+                                ) : (
+                                    <span className="flex items-center gap-2 text-sm"><Upload className="w-4 h-4" /> Click to upload</span>
+                                )}
+                            </div>
+                        </div>
                     </div>
 
                     <div className="col-span-2">
@@ -216,8 +250,17 @@ const Admin: React.FC = () => {
                         <>
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-2">Duration</label>
-                                <input type="text" placeholder="3 Days / 2 Nights" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" 
-                                    value={(newItem as TravelPackage).duration || ''} onChange={e => setNewItem({...newItem, duration: e.target.value} as any)} />
+                                <select 
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white"
+                                    value={(newItem as TravelPackage).duration || '2 Days / 1 Night'}
+                                    onChange={e => setNewItem({...newItem, duration: e.target.value} as any)}
+                                >
+                                    <option value="1 Day Trip">1 Day Trip</option>
+                                    <option value="2 Days / 1 Night">2 Days / 1 Night</option>
+                                    <option value="3 Days / 2 Nights">3 Days / 2 Nights</option>
+                                    <option value="4 Days / 3 Nights">4 Days / 3 Nights</option>
+                                    <option value="5+ Days">5+ Days</option>
+                                </select>
                             </div>
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-2">Location</label>
@@ -236,7 +279,7 @@ const Admin: React.FC = () => {
                             </div>
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-2">Transmission</label>
-                                <select className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" 
+                                <select className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white" 
                                     value={(newItem as Car).transmission || 'Manual'} onChange={e => setNewItem({...newItem, transmission: e.target.value} as any)}>
                                     <option value="Manual">Manual</option>
                                     <option value="Automatic">Automatic</option>

@@ -14,19 +14,38 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, item }) =>
   const { state } = useApp();
   const [formData, setFormData] = useState({
     name: '',
-    date: '',
+    startDate: '',
+    endDate: '',
     phone: ''
   });
 
+  const getLabels = () => {
+    if (item.category === 'car') {
+      return { start: 'Pick-up Date', end: 'Drop-off Date', showEnd: true };
+    }
+    if (item.category === 'cottage') {
+      return { start: 'Check-in Date', end: 'Check-out Date', showEnd: true };
+    }
+    return { start: 'Preferred Date', end: '', showEnd: false };
+  };
+
+  const labels = getLabels();
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    let dateString = formData.startDate;
+    if (labels.showEnd && formData.endDate) {
+      dateString = `${formData.startDate} to ${formData.endDate}`;
+    }
+
     const message = `Hello, I would like to book:
 *${item.title}* (${item.category.toUpperCase()})
 Price: ₹${item.price}
     
 *Details:*
 Name: ${formData.name}
-Date: ${formData.date}
+Date: ${dateString}
 Phone: ${formData.phone}
     
 Please confirm availability.`;
@@ -57,7 +76,9 @@ Please confirm availability.`;
           >
             <div className="flex items-center justify-between p-5 border-b border-gray-200 bg-gray-50">
               <div>
-                <h3 className="text-lg font-bold text-gray-900">Booking Request</h3>
+                <h3 className="text-lg font-bold text-gray-900">
+                    {item.category === 'car' ? 'Cab Booking Request' : 'Booking Request'}
+                </h3>
                 <p className="text-sm text-gray-500 mt-0.5">{item.title}</p>
               </div>
               <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition">
@@ -81,18 +102,36 @@ Please confirm availability.`;
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-500 uppercase">Preferred Date</label>
-                <div className="relative">
-                    <Calendar className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
-                    <input
-                    required
-                    type="date"
-                    className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-300 rounded-md focus:ring-1 focus:ring-primary focus:border-primary outline-none transition text-sm text-gray-900"
-                    value={formData.date}
-                    onChange={e => setFormData({ ...formData, date: e.target.value })}
-                    />
+              <div className="grid grid-cols-2 gap-4">
+                <div className={`space-y-1.5 ${!labels.showEnd ? 'col-span-2' : ''}`}>
+                    <label className="text-xs font-bold text-gray-500 uppercase">{labels.start}</label>
+                    <div className="relative">
+                        <Calendar className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
+                        <input
+                        required
+                        type="date"
+                        className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-300 rounded-md focus:ring-1 focus:ring-primary focus:border-primary outline-none transition text-sm text-gray-900"
+                        value={formData.startDate}
+                        onChange={e => setFormData({ ...formData, startDate: e.target.value })}
+                        />
+                    </div>
                 </div>
+
+                {labels.showEnd && (
+                    <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-gray-500 uppercase">{labels.end}</label>
+                        <div className="relative">
+                            <Calendar className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
+                            <input
+                            required
+                            type="date"
+                            className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-300 rounded-md focus:ring-1 focus:ring-primary focus:border-primary outline-none transition text-sm text-gray-900"
+                            value={formData.endDate}
+                            onChange={e => setFormData({ ...formData, endDate: e.target.value })}
+                            />
+                        </div>
+                    </div>
+                )}
               </div>
 
               <div className="space-y-1.5">
