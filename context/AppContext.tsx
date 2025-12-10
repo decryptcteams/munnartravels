@@ -92,7 +92,11 @@ const defaultState: AppState = {
       image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=800&auto=format&fit=crop',
       guests: 2,
       beds: 1,
-      amenities: ['Wi-Fi', 'Breakfast', 'Heater', 'Balcony']
+      amenities: ['Wi-Fi', 'Breakfast', 'Heater', 'Balcony'],
+      additionalImages: [
+        'https://images.unsplash.com/photo-1596394516093-501ba68a0ba6?q=80&w=800&auto=format&fit=crop',
+        'https://images.unsplash.com/photo-1510798831971-661eb04b3739?q=80&w=800&auto=format&fit=crop'
+      ]
     },
     {
       id: 'cot2',
@@ -103,7 +107,11 @@ const defaultState: AppState = {
       image: 'https://images.unsplash.com/photo-1449156493391-d2cfa28e468b?q=80&w=800&auto=format&fit=crop',
       guests: 4,
       beds: 2,
-      amenities: ['Kitchen', 'Bonfire', 'Parking', 'Caretaker']
+      amenities: ['Kitchen', 'Bonfire', 'Parking', 'Caretaker'],
+      additionalImages: [
+          'https://images.unsplash.com/photo-1587061949409-02df41d5e562?q=80&w=800&auto=format&fit=crop',
+          'https://images.unsplash.com/photo-1542718610-a1d656d1884c?q=80&w=800&auto=format&fit=crop'
+      ]
     }
   ]
 };
@@ -113,14 +121,14 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [state, setState] = useState<AppState>(() => {
     // Changed key to force refresh of data with new images and packages
-    const saved = localStorage.getItem('munner_data_v5');
+    const saved = localStorage.getItem('munner_data_v6');
     return saved ? JSON.parse(saved) : defaultState;
   });
 
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem('munner_data_v5', JSON.stringify(state));
+    localStorage.setItem('munner_data_v6', JSON.stringify(state));
   }, [state]);
 
   const addItem = (item: AnyItem) => {

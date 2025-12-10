@@ -81,8 +81,8 @@ const Admin: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   // New Item State
-  const [newItem, setNewItem] = useState<Partial<AnyItem>>({
-    title: '', description: '', price: 0, image: '', category: 'package'
+  const [newItem, setNewItem] = useState<Partial<AnyItem> & { additionalImages?: string[] }>({
+    title: '', description: '', price: 0, image: '', category: 'package', additionalImages: []
   });
 
   // Settings State
@@ -110,7 +110,7 @@ const Admin: React.FC = () => {
         return;
     }
     addItem({ ...newItem, id, category: activeTab } as AnyItem);
-    setNewItem({ title: '', description: '', price: 0, image: '', category: activeTab as Category });
+    setNewItem({ title: '', description: '', price: 0, image: '', category: activeTab as Category, additionalImages: [] });
     setIsAddModalOpen(false);
   };
 
@@ -299,6 +299,48 @@ const Admin: React.FC = () => {
                                 <label className="block text-sm font-semibold text-gray-700 mb-2">Beds</label>
                                 <input type="number" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" 
                                     value={(newItem as Cottage).beds || ''} onChange={e => setNewItem({...newItem, beds: Number(e.target.value)} as any)} />
+                            </div>
+                            <div className="col-span-2">
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">Additional Images (Max 3)</label>
+                                <div className="flex gap-4 flex-wrap">
+                                    {((newItem as any).additionalImages || []).map((img: string, idx: number) => (
+                                        <div key={idx} className="relative w-24 h-24 border rounded-lg overflow-hidden group">
+                                            <img src={img} alt="add" className="w-full h-full object-cover" />
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    const updated = [...((newItem as any).additionalImages || [])];
+                                                    updated.splice(idx, 1);
+                                                    setNewItem({ ...newItem, additionalImages: updated } as any);
+                                                }}
+                                                className="absolute inset-0 bg-black/40 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center transition"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                    {((newItem as any).additionalImages || []).length < 3 && (
+                                        <div className="w-24 h-24 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center relative hover:border-primary transition">
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={(e) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (file) {
+                                                        const reader = new FileReader();
+                                                        reader.onloadend = () => {
+                                                            const current = (newItem as any).additionalImages || [];
+                                                            setNewItem({ ...newItem, additionalImages: [...current, reader.result as string] } as any);
+                                                        };
+                                                        reader.readAsDataURL(file);
+                                                    }
+                                                }}
+                                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                            />
+                                            <Plus className="w-6 h-6 text-gray-400" />
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </>
                     )}

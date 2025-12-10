@@ -27,6 +27,7 @@ export interface Cottage extends BaseItem {
   guests: number;
   beds: number;
   amenities: string[];
+  additionalImages?: string[];
 }
 
 export type AnyItem = TravelPackage | Car | Cottage;
