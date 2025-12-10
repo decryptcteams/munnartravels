@@ -43,7 +43,7 @@ const Navbar: React.FC = () => {
              <MapPin className="w-5 h-5" />
           </motion.div>
           <span className="text-xl font-bold tracking-tight text-gray-900 group-hover:text-primary transition-colors">
-            Munnar<span className="text-primary">Travels</span>
+            Munnar<span className="text-primary">Travel</span>
           </span>
         </NavLink>
 

@@ -11,7 +11,7 @@ const Footer: React.FC = () => {
           <div>
             <div className="flex items-center gap-2 mb-4 text-white">
               <MapPin className="w-6 h-6 text-primary" />
-              <span className="text-xl font-bold">Munnar<span className="text-primary">Travels</span></span>
+              <span className="text-xl font-bold">Munnar<span className="text-primary">Travel</span></span>
             </div>
             <p className="text-sm leading-relaxed text-gray-400 max-w-xs">
               Your trusted partner for exploring the beautiful hills of Munnar. Packages, cabs, and stays tailored for you.
@@ -36,7 +36,7 @@ const Footer: React.FC = () => {
                 <Phone className="w-4 h-4 text-primary" /> +91 98433 73885, +91 96777 74607
               </li>
               <li className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-primary" /> munnartravels@gmail.com
+                <Mail className="w-4 h-4 text-primary" /> info.munnartravels@gmail.com
               </li>
               <li className="flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-primary" /> Munnar, Kerala, India

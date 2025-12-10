@@ -80,6 +80,12 @@ const Admin: React.FC = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Forgot Password State
+  const [showForgot, setShowForgot] = useState(false);
+  const [recoveryCode, setRecoveryCode] = useState('');
+  const [recoveryError, setRecoveryError] = useState(false);
+  const [recoverySuccess, setRecoverySuccess] = useState(false);
+
   // New Item State
   const [newItem, setNewItem] = useState<Partial<AnyItem> & { additionalImages?: string[] }>({
     title: '', description: '', price: 0, image: '', category: 'package', additionalImages: []
@@ -99,6 +105,23 @@ const Admin: React.FC = () => {
     } else {
       setLoginError(true);
     }
+  };
+
+  const handleRecover = (e: React.FormEvent) => {
+      e.preventDefault();
+      // Simple hardcoded recovery code for demo purposes
+      if (recoveryCode.toLowerCase() === 'munnar') {
+          updateConfig({ password: 'admin' }); // Reset to default
+          setRecoverySuccess(true);
+          setRecoveryError(false);
+          setTimeout(() => {
+              setRecoverySuccess(false);
+              setShowForgot(false);
+              setRecoveryCode('');
+          }, 2000);
+      } else {
+          setRecoveryError(true);
+      }
   };
 
   const handleAddItem = (e: React.FormEvent) => {
@@ -146,39 +169,90 @@ const Admin: React.FC = () => {
   if (!isAdminLoggedIn) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="bg-white p-10 rounded-xl shadow-xl w-full max-w-sm border border-gray-100">
+        <div className="bg-white p-10 rounded-xl shadow-xl w-full max-w-sm border border-gray-100 relative overflow-hidden">
+          {/* Background Pattern */}
+          <div className="absolute top-0 left-0 w-full h-2 bg-primary"></div>
+          
           <div className="flex flex-col items-center mb-8">
             <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center text-primary mb-4">
                 <Lock className="w-8 h-8" />
             </div>
             <h2 className="text-2xl font-bold text-gray-900">Admin Panel</h2>
-            <p className="text-sm text-gray-500 mt-1">Munnar Travels Management</p>
+            <p className="text-sm text-gray-500 mt-1">Munnar Travel Management</p>
           </div>
           
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-gray-600 uppercase ml-1">Password</label>
-              <input
-                type="password"
-                className={`w-full px-4 py-3 bg-gray-50 border rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition text-lg ${loginError ? 'border-red-300' : 'border-gray-200'}`}
-                value={passwordInput}
-                onChange={e => {
-                    setPasswordInput(e.target.value);
-                    setLoginError(false);
-                }}
-                autoFocus
-              />
-              {loginError && (
-                  <p className="text-xs text-red-500 font-medium ml-1">Incorrect password provided.</p>
-              )}
-            </div>
-            <button
-              type="submit"
-              className="w-full bg-primary text-white py-3 rounded-lg font-bold hover:bg-primary/90 transition shadow-lg shadow-primary/30 mt-2"
-            >
-              Access Dashboard
-            </button>
-          </form>
+          {!showForgot ? (
+              <form onSubmit={handleLogin} className="space-y-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-gray-600 uppercase ml-1">Password</label>
+                  <input
+                    type="password"
+                    className={`w-full px-4 py-3 bg-gray-50 border rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition text-lg ${loginError ? 'border-red-300' : 'border-gray-200'}`}
+                    value={passwordInput}
+                    onChange={e => {
+                        setPasswordInput(e.target.value);
+                        setLoginError(false);
+                    }}
+                    autoFocus
+                  />
+                  {loginError && (
+                      <p className="text-xs text-red-500 font-medium ml-1">Incorrect password provided.</p>
+                  )}
+                </div>
+                <button
+                  type="submit"
+                  className="w-full bg-primary text-white py-3 rounded-lg font-bold hover:bg-primary/90 transition shadow-lg shadow-primary/30 mt-2"
+                >
+                  Access Dashboard
+                </button>
+                <button 
+                  type="button"
+                  onClick={() => setShowForgot(true)}
+                  className="w-full text-center text-xs text-gray-500 hover:text-primary mt-2 font-medium transition-colors"
+                >
+                    Forgot Password?
+                </button>
+              </form>
+          ) : (
+              <form onSubmit={handleRecover} className="space-y-4">
+                  <div className="text-center mb-2">
+                      <p className="text-sm text-gray-600">Enter recovery code to reset password.</p>
+                  </div>
+                  <div className="space-y-1">
+                      <label className="text-xs font-bold text-gray-600 uppercase ml-1">Recovery Code</label>
+                      <input
+                          type="text"
+                          className={`w-full px-4 py-3 bg-gray-50 border rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition text-lg ${recoveryError ? 'border-red-300' : 'border-gray-200'}`}
+                          value={recoveryCode}
+                          onChange={e => {
+                              setRecoveryCode(e.target.value);
+                              setRecoveryError(false);
+                          }}
+                          placeholder="Enter code"
+                          autoFocus
+                      />
+                      {recoveryError && (
+                          <p className="text-xs text-red-500 font-medium ml-1">Invalid recovery code.</p>
+                      )}
+                      {recoverySuccess && (
+                          <p className="text-xs text-green-600 font-medium ml-1">Password reset to 'admin'.</p>
+                      )}
+                  </div>
+                  <button
+                      type="submit"
+                      className="w-full bg-secondary text-white py-3 rounded-lg font-bold hover:bg-secondary/90 transition shadow-lg shadow-secondary/30 mt-2"
+                  >
+                      Reset Password
+                  </button>
+                  <button 
+                      type="button"
+                      onClick={() => setShowForgot(false)}
+                      className="w-full text-center text-xs text-gray-500 hover:text-gray-800 mt-2 font-medium transition-colors"
+                  >
+                      Back to Login
+                  </button>
+              </form>
+          )}
         </div>
       </div>
     );
@@ -365,7 +439,7 @@ const Admin: React.FC = () => {
                         <Lock className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                        <h1 className="font-bold text-lg leading-tight">Munnar Travels</h1>
+                        <h1 className="font-bold text-lg leading-tight">Munnar Travel</h1>
                         <p className="text-[10px] text-white/70 uppercase tracking-wider font-semibold">Admin Dashboard</p>
                     </div>
                 </div>

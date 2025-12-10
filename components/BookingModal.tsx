@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, Phone, User, Send } from 'lucide-react';
+import { X, Calendar, Phone, User, Send, MapPin } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { AnyItem } from '../types';
 
@@ -16,7 +16,8 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, item }) =>
     name: '',
     startDate: '',
     endDate: '',
-    phone: ''
+    phone: '',
+    pickupLocation: ''
   });
 
   const getLabels = () => {
@@ -37,6 +38,11 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, item }) =>
       dateString = `${formData.startDate} to ${formData.endDate}`;
     }
 
+    let locationDetails = '';
+    if (item.category === 'car' && formData.pickupLocation) {
+        locationDetails = `Pick-up Location: ${formData.pickupLocation}`;
+    }
+
     const message = `Hello, I would like to book:
 *${item.title}* (${item.category.toUpperCase()})
 Price: ₹${item.price}
@@ -44,6 +50,7 @@ Price: ₹${item.price}
 *Details:*
 Name: ${formData.name}
 Date: ${dateString}
+${locationDetails}
 Phone: ${formData.phone}
     
 Please confirm availability.`;
@@ -71,9 +78,9 @@ Please confirm availability.`;
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ type: "spring", stiffness: 300, damping: 25 }}
-            className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden"
+            className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
           >
-            <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+            <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white sticky top-0 z-10">
               <div>
                 <h3 className="text-xl font-bold text-gray-900">
                     {item.category === 'car' ? 'Cab Booking' : 'Booking Request'}
@@ -104,8 +111,9 @@ Please confirm availability.`;
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-5">
-                <div className={`space-y-2 ${!labels.showEnd ? 'col-span-2' : ''}`}>
+              {/* Date Selection - Stacked Vertically */}
+              <div className="space-y-5">
+                <div className="space-y-2">
                     <label className="text-xs font-bold text-gray-500 uppercase tracking-wide ml-1">{labels.start}</label>
                     <div className="relative group">
                         <Calendar className="absolute left-3.5 top-3.5 w-5 h-5 text-gray-400 group-focus-within:text-primary transition-colors" />
@@ -135,6 +143,24 @@ Please confirm availability.`;
                     </div>
                 )}
               </div>
+
+              {/* Pick-up Location - Only for Cars */}
+              {item.category === 'car' && (
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wide ml-1">Pick-up Location</label>
+                    <div className="relative group">
+                        <MapPin className="absolute left-3.5 top-3.5 w-5 h-5 text-gray-400 group-focus-within:text-primary transition-colors" />
+                        <input
+                        required
+                        type="text"
+                        placeholder="Enter pick-up location"
+                        className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-gray-900 placeholder-gray-400"
+                        value={formData.pickupLocation}
+                        onChange={e => setFormData({ ...formData, pickupLocation: e.target.value })}
+                        />
+                    </div>
+                  </div>
+              )}
 
               <div className="space-y-2">
                 <label className="text-xs font-bold text-gray-500 uppercase tracking-wide ml-1">Phone Number</label>
