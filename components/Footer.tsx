@@ -48,6 +48,7 @@ const Footer: React.FC = () => {
         <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-500">
           <p>© 2025 Decryptc.com All rights reserved.</p>
           <div className="flex items-center gap-6">
+             <Link to="/terms" className="hover:text-white transition">Terms & Conditions</Link>
              <Link to="/admin" className="hover:text-white transition">Admin</Link>
           </div>
         </div>

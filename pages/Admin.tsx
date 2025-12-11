@@ -51,14 +51,13 @@ const ListItem: React.FC<ListItemProps> = ({ item, category, onDelete }) => (
           <button 
               type="button"
               onClick={(e) => {
-                  e.preventDefault();
                   e.stopPropagation();
                   onDelete(item.id, category);
               }}
-              className="relative z-20 text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-md transition cursor-pointer"
+              className="relative z-10 text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-md transition cursor-pointer pointer-events-auto"
               title="Delete Item"
           >
-              <Trash2 className="w-5 h-5 pointer-events-none" />
+              <Trash2 className="w-5 h-5" />
           </button>
       </div>
   </div>
@@ -103,7 +102,7 @@ const BookingListItem: React.FC<BookingItemProps> = ({ booking, onDelete }) => (
                     e.stopPropagation();
                     onDelete(booking.id);
                 }}
-                className="relative z-20 text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-md transition self-end md:self-center cursor-pointer"
+                className="relative z-10 text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-md transition self-end md:self-center cursor-pointer pointer-events-auto"
                 title="Delete Booking"
             >
                 <Trash2 className="w-5 h-5 pointer-events-none" />
@@ -127,6 +126,219 @@ const StatCard = ({ label, count, icon: Icon, colorClass }: any) => (
 );
 
 type FilterType = 'all' | 'today' | 'week' | 'month';
+type NewItemState = Partial<AnyItem> & { additionalImages?: string[] };
+
+interface AddItemModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    activeTab: Category | 'settings' | 'bookings';
+    newItem: NewItemState;
+    setNewItem: React.Dispatch<React.SetStateAction<NewItemState>>;
+    onAdd: (e: React.FormEvent) => void;
+    onImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}
+
+const AddItemModal: React.FC<AddItemModalProps> = ({ 
+    isOpen, 
+    onClose, 
+    activeTab, 
+    newItem, 
+    setNewItem, 
+    onAdd, 
+    onImageUpload 
+}) => {
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose}></div>
+            <motion.div 
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                className="relative bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden z-50"
+            >
+                <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                    <h3 className="font-bold text-gray-800 text-lg">
+                        Add New {activeTab !== 'settings' && activeTab !== 'bookings' && activeTab === 'car' ? 'Cab' : (activeTab as string).charAt(0).toUpperCase() + (activeTab as string).slice(1)}
+                    </h3>
+                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
+                
+                <form onSubmit={onAdd} className="p-6 overflow-y-auto max-h-[80vh]">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div className="col-span-2">
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Item Title</label>
+                            <input required type="text" placeholder="e.g. Luxury Munnar Stay" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" 
+                                value={newItem.title} onChange={e => setNewItem({...newItem, title: e.target.value})} />
+                        </div>
+                        
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Price (₹)</label>
+                            <input required type="number" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" 
+                                value={newItem.price || ''} onChange={e => setNewItem({...newItem, price: Number(e.target.value)})} />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Item Image</label>
+                            <div className="border-2 border-dashed border-gray-300 rounded-lg h-[42px] relative hover:border-primary transition overflow-hidden">
+                            <input 
+                                    type="file" 
+                                    accept="image/*"
+                                    onChange={onImageUpload}
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                />
+                                <div className="absolute inset-0 flex items-center px-4 text-gray-500 pointer-events-none">
+                                    {newItem.image ? (
+                                        <span className="text-green-600 font-medium flex items-center gap-2">
+                                            <div className="w-5 h-5 rounded overflow-hidden bg-gray-200">
+                                                <img src={newItem.image} alt="prev" className="w-full h-full object-cover" />
+                                            </div>
+                                            Image Selected
+                                        </span>
+                                    ) : (
+                                        <span className="flex items-center gap-2 text-sm"><Upload className="w-4 h-4" /> Click to upload</span>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="col-span-2">
+                            <label className="block text-sm font-semibold text-gray-700 mb-2">Description</label>
+                            <textarea required rows={3} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" 
+                                value={newItem.description} onChange={e => setNewItem({...newItem, description: e.target.value})} />
+                        </div>
+
+                        {/* Dynamic Fields */}
+                        {activeTab === 'package' && (
+                            <>
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Duration</label>
+                                    <select 
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white"
+                                        value={(newItem as TravelPackage).duration || '2 Days / 1 Night'}
+                                        onChange={e => setNewItem({...newItem, duration: e.target.value} as any)}
+                                    >
+                                        <option value="1 Day Trip">1 Day Trip</option>
+                                        <option value="2 Days / 1 Night">2 Days / 1 Night</option>
+                                        <option value="3 Days / 2 Nights">3 Days / 2 Nights</option>
+                                        <option value="4 Days / 3 Nights">4 Days / 3 Nights</option>
+                                        <option value="5+ Days">5+ Days</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Location</label>
+                                    <input type="text" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" 
+                                        value={(newItem as TravelPackage).location || ''} onChange={e => setNewItem({...newItem, location: e.target.value} as any)} />
+                                </div>
+                            </>
+                        )}
+
+                        {activeTab === 'car' && (
+                            <>
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Passengers</label>
+                                    <input type="number" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" 
+                                        value={(newItem as Car).passengers || ''} onChange={e => setNewItem({...newItem, passengers: Number(e.target.value)} as any)} />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Transmission</label>
+                                    <select className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white" 
+                                        value={(newItem as Car).transmission || 'Manual'} onChange={e => setNewItem({...newItem, transmission: e.target.value} as any)}>
+                                        <option value="Manual">Manual</option>
+                                        <option value="Automatic">Automatic</option>
+                                    </select>
+                                </div>
+                                <div className="col-span-2">
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Fuel Type</label>
+                                    <select className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white" 
+                                        value={(newItem as Car).fuelType || 'Diesel'} onChange={e => setNewItem({...newItem, fuelType: e.target.value} as any)}>
+                                        <option value="Diesel">Diesel</option>
+                                        <option value="Petrol">Petrol</option>
+                                        <option value="Electric">Electric</option>
+                                    </select>
+                                </div>
+                            </>
+                        )}
+
+                        {activeTab === 'cottage' && (
+                            <>
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Guests</label>
+                                    <input type="number" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" 
+                                        value={(newItem as Cottage).guests || ''} onChange={e => setNewItem({...newItem, guests: Number(e.target.value)} as any)} />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Beds</label>
+                                    <input type="number" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" 
+                                        value={(newItem as Cottage).beds || ''} onChange={e => setNewItem({...newItem, beds: Number(e.target.value)} as any)} />
+                                </div>
+                                <div className="col-span-2">
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Amenities (Comma separated)</label>
+                                    <textarea 
+                                        rows={2}
+                                        placeholder="Wi-Fi, Parking, Breakfast, View"
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" 
+                                        value={((newItem as Cottage).amenities || []).join(', ')} 
+                                        onChange={e => setNewItem({...newItem, amenities: e.target.value.split(',').map(s => s.trim()).filter(s => s)} as any)} 
+                                    />
+                                </div>
+                                <div className="col-span-2">
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Additional Images (Max 3)</label>
+                                    <div className="flex gap-4 flex-wrap">
+                                        {((newItem as any).additionalImages || []).map((img: string, idx: number) => (
+                                            <div key={idx} className="relative w-24 h-24 border rounded-lg overflow-hidden group">
+                                                <img src={img} alt="add" className="w-full h-full object-cover" />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const updated = [...((newItem as any).additionalImages || [])];
+                                                        updated.splice(idx, 1);
+                                                        setNewItem({ ...newItem, additionalImages: updated } as any);
+                                                    }}
+                                                    className="absolute inset-0 bg-black/40 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center transition"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        ))}
+                                        {((newItem as any).additionalImages || []).length < 3 && (
+                                            <div className="w-24 h-24 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center relative hover:border-primary transition">
+                                                <input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    onChange={(e) => {
+                                                        const file = e.target.files?.[0];
+                                                        if (file) {
+                                                            const reader = new FileReader();
+                                                            reader.onloadend = () => {
+                                                                const current = (newItem as any).additionalImages || [];
+                                                                setNewItem({ ...newItem, additionalImages: [...current, reader.result as string] } as any);
+                                                            };
+                                                            reader.readAsDataURL(file);
+                                                        }
+                                                    }}
+                                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                                />
+                                                <Plus className="w-6 h-6 text-gray-400" />
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                    </div>
+
+                    <div className="flex gap-4 pt-4 border-t border-gray-100">
+                        <button type="button" onClick={onClose} className="flex-1 py-3 text-gray-600 font-bold hover:bg-gray-50 rounded-lg transition">Cancel</button>
+                        <button type="submit" className="flex-1 bg-primary text-white py-3 rounded-lg font-bold hover:bg-primary/90 transition shadow-md">Add Item</button>
+                    </div>
+                </form>
+            </motion.div>
+        </div>
+    );
+};
 
 const Admin: React.FC = () => {
   const { state, login, logout, isAdminLoggedIn, addItem, deleteItem, updateConfig, deleteBooking } = useApp();
@@ -144,7 +356,7 @@ const Admin: React.FC = () => {
   const [recoverySuccess, setRecoverySuccess] = useState(false);
 
   // New Item State
-  const [newItem, setNewItem] = useState<Partial<AnyItem> & { additionalImages?: string[] }>({
+  const [newItem, setNewItem] = useState<NewItemState>({
     title: '', description: '', price: 0, image: '', category: 'package', additionalImages: []
   });
 
@@ -364,196 +576,6 @@ const Admin: React.FC = () => {
 
   // --- DASHBOARD COMPONENTS ---
 
-  const AddItemModal = () => (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsAddModalOpen(false)}></div>
-        <motion.div 
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            className="relative bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden z-50"
-        >
-            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                <h3 className="font-bold text-gray-800 text-lg">
-                    Add New {activeTab !== 'settings' && activeTab !== 'bookings' && activeTab === 'car' ? 'Cab' : (activeTab as string).charAt(0).toUpperCase() + (activeTab as string).slice(1)}
-                </h3>
-                <button onClick={() => setIsAddModalOpen(false)} className="text-gray-400 hover:text-gray-600">
-                    <X className="w-5 h-5" />
-                </button>
-            </div>
-            
-            <form onSubmit={handleAddItem} className="p-6 overflow-y-auto max-h-[80vh]">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <div className="col-span-2">
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Item Title</label>
-                        <input required type="text" placeholder="e.g. Luxury Munnar Stay" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" 
-                            value={newItem.title} onChange={e => setNewItem({...newItem, title: e.target.value})} />
-                    </div>
-                    
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Price (₹)</label>
-                        <input required type="number" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" 
-                            value={newItem.price || ''} onChange={e => setNewItem({...newItem, price: Number(e.target.value)})} />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Item Image</label>
-                        <div className="border-2 border-dashed border-gray-300 rounded-lg h-[42px] relative hover:border-primary transition overflow-hidden">
-                           <input 
-                                type="file" 
-                                accept="image/*"
-                                onChange={handleImageUpload}
-                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                            />
-                            <div className="absolute inset-0 flex items-center px-4 text-gray-500 pointer-events-none">
-                                {newItem.image ? (
-                                    <span className="text-green-600 font-medium flex items-center gap-2">
-                                        <div className="w-5 h-5 rounded overflow-hidden bg-gray-200">
-                                            <img src={newItem.image} alt="prev" className="w-full h-full object-cover" />
-                                        </div>
-                                        Image Selected
-                                    </span>
-                                ) : (
-                                    <span className="flex items-center gap-2 text-sm"><Upload className="w-4 h-4" /> Click to upload</span>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="col-span-2">
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Description</label>
-                        <textarea required rows={3} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" 
-                            value={newItem.description} onChange={e => setNewItem({...newItem, description: e.target.value})} />
-                    </div>
-
-                    {/* Dynamic Fields */}
-                    {activeTab === 'package' && (
-                        <>
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">Duration</label>
-                                <select 
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white"
-                                    value={(newItem as TravelPackage).duration || '2 Days / 1 Night'}
-                                    onChange={e => setNewItem({...newItem, duration: e.target.value} as any)}
-                                >
-                                    <option value="1 Day Trip">1 Day Trip</option>
-                                    <option value="2 Days / 1 Night">2 Days / 1 Night</option>
-                                    <option value="3 Days / 2 Nights">3 Days / 2 Nights</option>
-                                    <option value="4 Days / 3 Nights">4 Days / 3 Nights</option>
-                                    <option value="5+ Days">5+ Days</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">Location</label>
-                                <input type="text" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" 
-                                    value={(newItem as TravelPackage).location || ''} onChange={e => setNewItem({...newItem, location: e.target.value} as any)} />
-                            </div>
-                        </>
-                    )}
-
-                    {activeTab === 'car' && (
-                        <>
-                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">Passengers</label>
-                                <input type="number" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" 
-                                    value={(newItem as Car).passengers || ''} onChange={e => setNewItem({...newItem, passengers: Number(e.target.value)} as any)} />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">Transmission</label>
-                                <select className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white" 
-                                    value={(newItem as Car).transmission || 'Manual'} onChange={e => setNewItem({...newItem, transmission: e.target.value} as any)}>
-                                    <option value="Manual">Manual</option>
-                                    <option value="Automatic">Automatic</option>
-                                </select>
-                            </div>
-                            <div className="col-span-2">
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">Fuel Type</label>
-                                <select className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white" 
-                                    value={(newItem as Car).fuelType || 'Diesel'} onChange={e => setNewItem({...newItem, fuelType: e.target.value} as any)}>
-                                    <option value="Diesel">Diesel</option>
-                                    <option value="Petrol">Petrol</option>
-                                    <option value="Electric">Electric</option>
-                                </select>
-                            </div>
-                        </>
-                    )}
-
-                    {activeTab === 'cottage' && (
-                        <>
-                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">Guests</label>
-                                <input type="number" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" 
-                                    value={(newItem as Cottage).guests || ''} onChange={e => setNewItem({...newItem, guests: Number(e.target.value)} as any)} />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">Beds</label>
-                                <input type="number" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" 
-                                    value={(newItem as Cottage).beds || ''} onChange={e => setNewItem({...newItem, beds: Number(e.target.value)} as any)} />
-                            </div>
-                            <div className="col-span-2">
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">Amenities (Comma separated)</label>
-                                <textarea 
-                                    rows={2}
-                                    placeholder="Wi-Fi, Parking, Breakfast, View"
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" 
-                                    value={((newItem as Cottage).amenities || []).join(', ')} 
-                                    onChange={e => setNewItem({...newItem, amenities: e.target.value.split(',').map(s => s.trim()).filter(s => s)} as any)} 
-                                />
-                            </div>
-                            <div className="col-span-2">
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">Additional Images (Max 3)</label>
-                                <div className="flex gap-4 flex-wrap">
-                                    {((newItem as any).additionalImages || []).map((img: string, idx: number) => (
-                                        <div key={idx} className="relative w-24 h-24 border rounded-lg overflow-hidden group">
-                                            <img src={img} alt="add" className="w-full h-full object-cover" />
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    const updated = [...((newItem as any).additionalImages || [])];
-                                                    updated.splice(idx, 1);
-                                                    setNewItem({ ...newItem, additionalImages: updated } as any);
-                                                }}
-                                                className="absolute inset-0 bg-black/40 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center transition"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    ))}
-                                    {((newItem as any).additionalImages || []).length < 3 && (
-                                        <div className="w-24 h-24 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center relative hover:border-primary transition">
-                                            <input
-                                                type="file"
-                                                accept="image/*"
-                                                onChange={(e) => {
-                                                    const file = e.target.files?.[0];
-                                                    if (file) {
-                                                        const reader = new FileReader();
-                                                        reader.onloadend = () => {
-                                                            const current = (newItem as any).additionalImages || [];
-                                                            setNewItem({ ...newItem, additionalImages: [...current, reader.result as string] } as any);
-                                                        };
-                                                        reader.readAsDataURL(file);
-                                                    }
-                                                }}
-                                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                                            />
-                                            <Plus className="w-6 h-6 text-gray-400" />
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </>
-                    )}
-                </div>
-
-                <div className="flex gap-4 pt-4 border-t border-gray-100">
-                    <button type="button" onClick={() => setIsAddModalOpen(false)} className="flex-1 py-3 text-gray-600 font-bold hover:bg-gray-50 rounded-lg transition">Cancel</button>
-                    <button type="submit" className="flex-1 bg-primary text-white py-3 rounded-lg font-bold hover:bg-primary/90 transition shadow-md">Add Item</button>
-                </div>
-            </form>
-        </motion.div>
-    </div>
-  );
-
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
         {/* TOP HEADER */}
@@ -758,7 +780,17 @@ const Admin: React.FC = () => {
 
         {/* ADD MODAL */}
         <AnimatePresence>
-            {isAddModalOpen && <AddItemModal />}
+            {isAddModalOpen && (
+                <AddItemModal 
+                    isOpen={true}
+                    onClose={() => setIsAddModalOpen(false)}
+                    activeTab={activeTab}
+                    newItem={newItem}
+                    setNewItem={setNewItem}
+                    onAdd={handleAddItem}
+                    onImageUpload={handleImageUpload}
+                />
+            )}
         </AnimatePresence>
     </div>
   );

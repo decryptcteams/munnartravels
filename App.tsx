@@ -7,6 +7,7 @@ import Packages from './pages/Packages';
 import Fleet from './pages/Fleet';
 import Cottages from './pages/Cottages';
 import Admin from './pages/Admin';
+import Terms from './pages/Terms';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -29,6 +30,7 @@ const App: React.FC = () => {
             <Route path="/fleet" element={<Fleet />} />
             <Route path="/cottages" element={<Cottages />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/terms" element={<Terms />} />
           </Routes>
         </main>
         <Footer />
