@@ -35,8 +35,8 @@ const Home: React.FC = () => {
       <section className="relative h-[600px] bg-gray-900 flex items-center">
         <div className="absolute inset-0">
           <img 
-            src="https://images.unsplash.com/photo-1593693397690-362cb9666c64?q=80&w=1920&auto=format&fit=crop" 
-            alt="Kerala Houseboat" 
+            src="https://images.unsplash.com/photo-1524492412937-b28074a5d7da?q=80&w=1920&auto=format&fit=crop" 
+            alt="Munnar Tea Gardens" 
             className="w-full h-full object-cover opacity-60 scale-105 animate-slow-zoom"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent opacity-80" />

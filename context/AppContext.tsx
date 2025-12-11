@@ -1,10 +1,12 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { AppState, TravelPackage, Car, Cottage, AdminConfig, AnyItem, Category } from '../types';
+import { AppState, TravelPackage, Car, Cottage, AdminConfig, AnyItem, Category, Booking } from '../types';
 
 interface AppContextType {
   state: AppState;
   addItem: (item: AnyItem) => void;
   deleteItem: (id: string, category: Category) => void;
+  addBooking: (booking: Booking) => void;
+  deleteBooking: (id: string) => void;
   updateConfig: (newConfig: Partial<AdminConfig>) => void;
   isAdminLoggedIn: boolean;
   login: (password: string) => boolean;
@@ -16,6 +18,7 @@ const defaultState: AppState = {
     password: 'admin',
     whatsappNumber: '919843373885',
   },
+  bookings: [],
   packages: [
     {
       id: 'p1',
@@ -120,15 +123,15 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [state, setState] = useState<AppState>(() => {
-    // Changed key to force refresh of data with new images and packages
-    const saved = localStorage.getItem('munner_data_v6');
+    // Changed key to force refresh of data structure for bookings
+    const saved = localStorage.getItem('munner_data_v7');
     return saved ? JSON.parse(saved) : defaultState;
   });
 
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem('munner_data_v6', JSON.stringify(state));
+    localStorage.setItem('munner_data_v7', JSON.stringify(state));
   }, [state]);
 
   const addItem = (item: AnyItem) => {
@@ -149,6 +152,14 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     });
   };
 
+  const addBooking = (booking: Booking) => {
+    setState(prev => ({ ...prev, bookings: [booking, ...prev.bookings] }));
+  };
+
+  const deleteBooking = (id: string) => {
+    setState(prev => ({ ...prev, bookings: prev.bookings.filter(b => b.id !== id) }));
+  };
+
   const updateConfig = (newConfig: Partial<AdminConfig>) => {
     setState(prev => ({ ...prev, config: { ...prev.config, ...newConfig } }));
   };
@@ -166,7 +177,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   return (
-    <AppContext.Provider value={{ state, addItem, deleteItem, updateConfig, isAdminLoggedIn, login, logout }}>
+    <AppContext.Provider value={{ state, addItem, deleteItem, addBooking, deleteBooking, updateConfig, isAdminLoggedIn, login, logout }}>
       {children}
     </AppContext.Provider>
   );

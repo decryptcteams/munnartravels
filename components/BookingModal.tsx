@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Calendar, Phone, User, Send, MapPin } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { AnyItem } from '../types';
+import { AnyItem, Booking } from '../types';
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -11,7 +11,7 @@ interface BookingModalProps {
 }
 
 const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, item }) => {
-  const { state } = useApp();
+  const { state, addBooking } = useApp();
   const [formData, setFormData] = useState({
     name: '',
     startDate: '',
@@ -43,6 +43,23 @@ const BookingModal: React.FC<BookingModalProps> = ({ isOpen, onClose, item }) =>
         locationDetails = `Pick-up Location: ${formData.pickupLocation}`;
     }
 
+    // Save booking to Admin Panel
+    const newBooking: Booking = {
+        id: Date.now().toString(),
+        itemId: item.id,
+        itemTitle: item.title,
+        category: item.category,
+        customerName: formData.name,
+        phone: formData.phone,
+        startDate: formData.startDate,
+        endDate: formData.endDate,
+        pickupLocation: formData.pickupLocation,
+        timestamp: new Date().toISOString(),
+        status: 'pending'
+    };
+    addBooking(newBooking);
+
+    // WhatsApp Message
     const message = `Hello, I would like to book:
 *${item.title}* (${item.category.toUpperCase()})
 Price: ₹${item.price}

@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
-import { Trash2, Plus, Save, Settings, Package, Car as CarIcon, Home, Lock, LogOut, Search, X, MapPin, Calendar, Users, Fuel, Upload } from 'lucide-react';
-import { Category, AnyItem, TravelPackage, Car, Cottage } from '../types';
+import { Trash2, Plus, Settings, Package, Car as CarIcon, Home, Lock, LogOut, Search, X, Calendar, Users, Fuel, Upload, CalendarCheck } from 'lucide-react';
+import { Category, AnyItem, TravelPackage, Car, Cottage, Booking } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Extracted ListItem component
@@ -12,7 +12,7 @@ interface ListItemProps {
 }
 
 const ListItem: React.FC<ListItemProps> = ({ item, category, onDelete }) => (
-  <div className="bg-white rounded-lg border border-gray-200 p-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center hover:shadow-md transition-shadow group">
+  <div className="bg-white rounded-lg border border-gray-200 p-4 flex flex-col sm:flex-row gap-4 items-start sm:items-center hover:shadow-md transition-shadow group relative">
       <div className="w-full sm:w-24 h-24 bg-gray-100 rounded-md overflow-hidden shrink-0">
           <img src={item.image} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
       </div>
@@ -20,7 +20,7 @@ const ListItem: React.FC<ListItemProps> = ({ item, category, onDelete }) => (
       <div className="flex-grow min-w-0">
           <div className="flex flex-col md:flex-row md:items-center gap-2 mb-1">
               <h4 className="font-bold text-gray-900 text-lg truncate">{item.title}</h4>
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                   {category === 'package' && (
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-green-50 text-green-700 border border-green-100">
                           <Calendar className="w-3 h-3" /> {(item as TravelPackage).duration}
@@ -49,15 +49,69 @@ const ListItem: React.FC<ListItemProps> = ({ item, category, onDelete }) => (
       <div className="flex flex-row sm:flex-col items-center sm:items-end gap-4 sm:gap-1 w-full sm:w-auto justify-between sm:justify-center border-t sm:border-t-0 border-gray-100 pt-3 sm:pt-0 mt-2 sm:mt-0">
           <span className="font-bold text-gray-900 text-lg">₹{item.price.toLocaleString()}</span>
           <button 
-              onClick={() => onDelete(item.id, category)}
-              className="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-md transition"
+              type="button"
+              onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onDelete(item.id, category);
+              }}
+              className="relative z-20 text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-md transition cursor-pointer"
               title="Delete Item"
           >
-              <Trash2 className="w-5 h-5" />
+              <Trash2 className="w-5 h-5 pointer-events-none" />
           </button>
       </div>
   </div>
 );
+
+// Booking List Item
+interface BookingItemProps {
+    booking: Booking;
+    onDelete: (id: string) => void;
+}
+
+const BookingListItem: React.FC<BookingItemProps> = ({ booking, onDelete }) => (
+    <div className="bg-white rounded-lg border border-gray-200 p-5 hover:shadow-md transition-shadow relative">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div className="flex-grow">
+                <div className="flex items-center gap-2 mb-1">
+                    <span className={`px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider ${
+                        booking.category === 'car' ? 'bg-amber-100 text-amber-800' :
+                        booking.category === 'cottage' ? 'bg-blue-100 text-blue-800' :
+                        'bg-green-100 text-green-800'
+                    }`}>
+                        {booking.category}
+                    </span>
+                    <span className="text-xs text-gray-400">
+                        {new Date(booking.timestamp).toLocaleString()}
+                    </span>
+                </div>
+                <h4 className="font-bold text-gray-900 text-lg">{booking.itemTitle}</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 mt-3 text-sm text-gray-600">
+                    <p className="flex items-center gap-2"><Users className="w-4 h-4 text-gray-400" /> {booking.customerName}</p>
+                    <p className="flex items-center gap-2 font-medium"><Users className="w-4 h-4 text-primary" /> {booking.phone}</p>
+                    <p className="flex items-center gap-2"><Calendar className="w-4 h-4 text-gray-400" /> {booking.startDate} {booking.endDate ? ` to ${booking.endDate}` : ''}</p>
+                    {booking.pickupLocation && (
+                        <p className="flex items-center gap-2 font-medium text-amber-700 bg-amber-50 px-2 rounded w-fit">📍 Pickup: {booking.pickupLocation}</p>
+                    )}
+                </div>
+            </div>
+             <button 
+                type="button"
+                onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onDelete(booking.id);
+                }}
+                className="relative z-20 text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-md transition self-end md:self-center cursor-pointer"
+                title="Delete Booking"
+            >
+                <Trash2 className="w-5 h-5 pointer-events-none" />
+            </button>
+        </div>
+    </div>
+);
+
 
 // Extracted StatCard component
 const StatCard = ({ label, count, icon: Icon, colorClass }: any) => (
@@ -72,13 +126,16 @@ const StatCard = ({ label, count, icon: Icon, colorClass }: any) => (
   </div>
 );
 
+type FilterType = 'all' | 'today' | 'week' | 'month';
+
 const Admin: React.FC = () => {
-  const { state, login, logout, isAdminLoggedIn, addItem, deleteItem, updateConfig } = useApp();
+  const { state, login, logout, isAdminLoggedIn, addItem, deleteItem, updateConfig, deleteBooking } = useApp();
   const [passwordInput, setPasswordInput] = useState('');
-  const [activeTab, setActiveTab] = useState<Category | 'settings'>('package');
+  const [activeTab, setActiveTab] = useState<Category | 'settings' | 'bookings'>('bookings');
   const [loginError, setLoginError] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [bookingFilter, setBookingFilter] = useState<FilterType>('all');
 
   // Forgot Password State
   const [showForgot, setShowForgot] = useState(false);
@@ -132,9 +189,27 @@ const Admin: React.FC = () => {
         alert("Please upload an image");
         return;
     }
-    addItem({ ...newItem, id, category: activeTab } as AnyItem);
-    setNewItem({ title: '', description: '', price: 0, image: '', category: activeTab as Category, additionalImages: [] });
+    // Cannot add items to settings or bookings tabs
+    if (activeTab === 'settings' || activeTab === 'bookings') return;
+
+    const itemToAdd = { ...newItem, id, category: activeTab } as AnyItem;
+    
+    // Ensure amenities is an array for cottages if missing
+    if (activeTab === 'cottage' && !(itemToAdd as Cottage).amenities) {
+        (itemToAdd as Cottage).amenities = [];
+    }
+
+    addItem(itemToAdd);
     setIsAddModalOpen(false);
+    // Reset form
+    setNewItem({ 
+        title: '', 
+        description: '', 
+        price: 0, 
+        image: '', 
+        category: activeTab as Category, 
+        additionalImages: [] 
+    });
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -154,6 +229,12 @@ const Admin: React.FC = () => {
       }
   }
 
+  const handleDeleteBooking = (id: string) => {
+      if(window.confirm('Remove this booking record?')) {
+          deleteBooking(id);
+      }
+  }
+
   const handleUpdateSettings = (e: React.FormEvent) => {
     e.preventDefault();
     const updates: any = { whatsappNumber: settingsForm.whatsapp };
@@ -163,6 +244,29 @@ const Admin: React.FC = () => {
     updateConfig(updates);
     alert('Settings updated successfully!');
     setSettingsForm({ ...settingsForm, newPassword: '' });
+  };
+
+  const getFilteredBookings = () => {
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const oneWeekAgo = now.getTime() - (7 * 24 * 60 * 60 * 1000);
+    const oneMonthAgo = now.getTime() - (30 * 24 * 60 * 60 * 1000);
+
+    return state.bookings.filter(b => {
+        // Search filter
+        const matchesSearch = b.customerName.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                              b.itemTitle.toLowerCase().includes(searchTerm.toLowerCase());
+        
+        if (!matchesSearch) return false;
+
+        // Time filter
+        const bookingTime = new Date(b.timestamp).getTime();
+        if (bookingFilter === 'today') return bookingTime >= startOfToday;
+        if (bookingFilter === 'week') return bookingTime >= oneWeekAgo;
+        if (bookingFilter === 'month') return bookingTime >= oneMonthAgo;
+        
+        return true;
+    }).sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
   };
 
   // --- LOGIN SCREEN ---
@@ -266,10 +370,12 @@ const Admin: React.FC = () => {
         <motion.div 
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            className="relative bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden"
+            className="relative bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden z-50"
         >
             <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                <h3 className="font-bold text-gray-800 text-lg">Add New {activeTab === 'car' ? 'Cab' : (activeTab.charAt(0).toUpperCase() + activeTab.slice(1))}</h3>
+                <h3 className="font-bold text-gray-800 text-lg">
+                    Add New {activeTab !== 'settings' && activeTab !== 'bookings' && activeTab === 'car' ? 'Cab' : (activeTab as string).charAt(0).toUpperCase() + (activeTab as string).slice(1)}
+                </h3>
                 <button onClick={() => setIsAddModalOpen(false)} className="text-gray-400 hover:text-gray-600">
                     <X className="w-5 h-5" />
                 </button>
@@ -359,6 +465,15 @@ const Admin: React.FC = () => {
                                     <option value="Automatic">Automatic</option>
                                 </select>
                             </div>
+                            <div className="col-span-2">
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">Fuel Type</label>
+                                <select className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white" 
+                                    value={(newItem as Car).fuelType || 'Diesel'} onChange={e => setNewItem({...newItem, fuelType: e.target.value} as any)}>
+                                    <option value="Diesel">Diesel</option>
+                                    <option value="Petrol">Petrol</option>
+                                    <option value="Electric">Electric</option>
+                                </select>
+                            </div>
                         </>
                     )}
 
@@ -373,6 +488,16 @@ const Admin: React.FC = () => {
                                 <label className="block text-sm font-semibold text-gray-700 mb-2">Beds</label>
                                 <input type="number" className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" 
                                     value={(newItem as Cottage).beds || ''} onChange={e => setNewItem({...newItem, beds: Number(e.target.value)} as any)} />
+                            </div>
+                            <div className="col-span-2">
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">Amenities (Comma separated)</label>
+                                <textarea 
+                                    rows={2}
+                                    placeholder="Wi-Fi, Parking, Breakfast, View"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none" 
+                                    value={((newItem as Cottage).amenities || []).join(', ')} 
+                                    onChange={e => setNewItem({...newItem, amenities: e.target.value.split(',').map(s => s.trim()).filter(s => s)} as any)} 
+                                />
                             </div>
                             <div className="col-span-2">
                                 <label className="block text-sm font-semibold text-gray-700 mb-2">Additional Images (Max 3)</label>
@@ -457,16 +582,17 @@ const Admin: React.FC = () => {
         <div className="bg-white border-b border-gray-200 sticky top-16 z-10 shadow-sm">
             <div className="container mx-auto px-6">
                 <div className="flex gap-8 overflow-x-auto no-scrollbar">
-                    {['package', 'car', 'cottage', 'settings'].map((tab) => (
+                    {['bookings', 'package', 'car', 'cottage', 'settings'].map((tab) => (
                         <button
                             key={tab}
-                            onClick={() => { setActiveTab(tab as any); setSearchTerm(''); }}
+                            onClick={() => { setActiveTab(tab as any); }}
                             className={`py-4 text-sm font-bold border-b-2 transition-colors whitespace-nowrap px-1 ${
                                 activeTab === tab 
                                 ? 'border-primary text-primary' 
                                 : 'border-transparent text-gray-500 hover:text-gray-800'
                             }`}
                         >
+                            {tab === 'bookings' && 'Inquiries'}
                             {tab === 'package' && 'Tour Packages'}
                             {tab === 'car' && 'Cab Fleet'}
                             {tab === 'cottage' && 'Cottages'}
@@ -516,7 +642,13 @@ const Admin: React.FC = () => {
             ) : (
                 <>
                     {/* Stats Overview */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+                         <StatCard 
+                            label="Inquiries" 
+                            count={state.bookings.length} 
+                            icon={CalendarCheck} 
+                            colorClass="bg-purple-100 text-purple-700" 
+                        />
                         <StatCard 
                             label="Total Packages" 
                             count={state.packages.length} 
@@ -543,39 +675,82 @@ const Admin: React.FC = () => {
                             <Search className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
                             <input 
                                 type="text"
-                                placeholder={`Search ${activeTab === 'package' ? 'packages' : activeTab}s...`}
+                                placeholder={`Search ${activeTab === 'bookings' ? 'inquiries' : activeTab}...`}
                                 className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition"
                                 value={searchTerm}
                                 onChange={e => setSearchTerm(e.target.value)}
                             />
                         </div>
-                        <button 
-                            onClick={() => setIsAddModalOpen(true)}
-                            className="w-full md:w-auto flex items-center justify-center gap-2 bg-secondary text-white px-6 py-2.5 rounded-lg font-bold hover:bg-secondary/90 transition shadow-md"
-                        >
-                            <Plus className="w-5 h-5" />
-                            Add New
-                        </button>
+                        {activeTab !== 'bookings' && (
+                            <button 
+                                onClick={() => setIsAddModalOpen(true)}
+                                className="w-full md:w-auto flex items-center justify-center gap-2 bg-secondary text-white px-6 py-2.5 rounded-lg font-bold hover:bg-secondary/90 transition shadow-md"
+                            >
+                                <Plus className="w-5 h-5" />
+                                Add New
+                            </button>
+                        )}
                     </div>
+
+                    {/* Filters for Bookings */}
+                    {activeTab === 'bookings' && (
+                        <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+                             {[
+                                { id: 'all', label: 'All Inquiries' },
+                                { id: 'today', label: 'Today' },
+                                { id: 'week', label: 'Last 7 Days' },
+                                { id: 'month', label: 'Last 30 Days' }
+                             ].map((f) => (
+                                 <button
+                                    key={f.id}
+                                    onClick={() => setBookingFilter(f.id as FilterType)}
+                                    className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors whitespace-nowrap ${
+                                        bookingFilter === f.id 
+                                        ? 'bg-gray-800 text-white' 
+                                        : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
+                                    }`}
+                                 >
+                                     {f.label}
+                                 </button>
+                             ))}
+                        </div>
+                    )}
 
                     {/* Item List */}
                     <div className="space-y-4">
-                        {(() => {
-                            const items = activeTab === 'package' ? state.packages : activeTab === 'car' ? state.cars : state.cottages;
-                            const filtered = items.filter(i => i.title.toLowerCase().includes(searchTerm.toLowerCase()));
-                            
-                            if (filtered.length === 0) {
-                                return (
-                                    <div className="text-center py-20 bg-white rounded-xl border border-dashed border-gray-300">
-                                        <p className="text-gray-400 font-medium">No items found.</p>
-                                    </div>
-                                );
-                            }
+                        {activeTab === 'bookings' ? (
+                             (() => {
+                                const filtered = getFilteredBookings();
 
-                            return filtered.map(item => (
-                                <ListItem key={item.id} item={item} category={activeTab as Category} onDelete={handleDelete} />
-                            ));
-                        })()}
+                                if (filtered.length === 0) {
+                                     return (
+                                        <div className="text-center py-20 bg-white rounded-xl border border-dashed border-gray-300">
+                                            <p className="text-gray-400 font-medium">No inquiries found for this period.</p>
+                                        </div>
+                                    );
+                                }
+                                return filtered.map(b => (
+                                    <BookingListItem key={b.id} booking={b} onDelete={handleDeleteBooking} />
+                                ));
+                             })()
+                        ) : (
+                            (() => {
+                                const items = activeTab === 'package' ? state.packages : activeTab === 'car' ? state.cars : state.cottages;
+                                const filtered = items.filter(i => i.title.toLowerCase().includes(searchTerm.toLowerCase()));
+                                
+                                if (filtered.length === 0) {
+                                    return (
+                                        <div className="text-center py-20 bg-white rounded-xl border border-dashed border-gray-300">
+                                            <p className="text-gray-400 font-medium">No items found.</p>
+                                        </div>
+                                    );
+                                }
+
+                                return filtered.map(item => (
+                                    <ListItem key={item.id} item={item} category={activeTab as Category} onDelete={handleDelete} />
+                                ));
+                            })()
+                        )}
                     </div>
                 </>
             )}
