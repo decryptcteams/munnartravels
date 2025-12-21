@@ -11,7 +11,7 @@ export interface BaseItem {
 
 export interface TravelPackage extends BaseItem {
   category: 'package';
-  duration: string; // e.g., "3 Days / 2 Nights"
+  duration: string;
   location: string;
 }
 
@@ -42,13 +42,13 @@ export interface Booking {
   startDate: string;
   endDate?: string;
   pickupLocation?: string;
-  timestamp: string; // ISO string
+  timestamp: string;
   status: 'pending' | 'confirmed' | 'cancelled';
 }
 
 export interface AdminConfig {
-  password: string; // In a real app, hash this!
-  whatsappNumber: string; // Format: 919876543210
+  password: string;
+  whatsappNumber: string;
 }
 
 export interface AppState {
