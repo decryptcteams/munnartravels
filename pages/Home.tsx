@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -61,7 +62,7 @@ const Home: React.FC = () => {
               variants={fadeInUp}
               className="text-xl text-gray-200 mb-10 max-w-xl shadow-black drop-shadow-md leading-relaxed"
             >
-              Best tour packages, reliable cab services, and cozy stays for your perfect getaway in God's Own Country.
+              Best tour packages, reliable cab services, and cozy stays for your perfect booking platform.
             </motion.p>
             <motion.div variants={fadeInUp}>
                 <Link 

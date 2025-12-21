@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { MapPin, Phone, Mail } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -10,7 +11,7 @@ const Footer: React.FC = () => {
           <div>
             <div className="flex items-center gap-2 mb-4 text-white">
               <MapPin className="w-6 h-6 text-primary" />
-              <span className="text-xl font-bold">Munnar<span className="text-primary">Travel</span></span>
+              <span className="text-xl font-bold">Munner<span className="text-primary">Travels</span></span>
             </div>
             <p className="text-sm leading-relaxed text-gray-400 max-w-xs">
               Your trusted partner for exploring the beautiful hills of Munnar. Packages, cabs, and stays tailored for you.

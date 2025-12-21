@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 
 interface SEOProps {
@@ -13,15 +14,12 @@ const SEO: React.FC<SEOProps> = ({
 }) => {
   useEffect(() => {
     // Update Title
-    document.title = `${title} | Munnar Travel`;
+    document.title = `${title} | Munner Travels`;
 
     // Helper to update meta tag by name or property
     const updateMeta = (selector: string, content: string) => {
       let element = document.querySelector(selector);
       if (!element) {
-        // If element doesn't exist, we could create it, but for simplicity
-        // in a client-side transition, we usually expect base tags to be in index.html.
-        // If strict creation is needed, we would createElement here.
         return;
       }
       element.setAttribute('content', content);

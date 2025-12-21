@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { Menu, X, MapPin } from 'lucide-react';
@@ -38,7 +39,7 @@ const Navbar: React.FC = () => {
              <MapPin className="w-5 h-5" />
           </motion.div>
           <span className="text-xl font-bold tracking-tight text-gray-900 group-hover:text-primary transition-colors">
-            Munnar<span className="text-primary">Travel</span>
+            Munner<span className="text-primary">Travels</span>
           </span>
         </NavLink>
 
