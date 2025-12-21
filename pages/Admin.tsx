@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { 
@@ -583,7 +582,7 @@ const Admin: React.FC = () => {
                          </div>
                       </div>
                     </div>
-                  </>
+                  </div>
                 )}
               </div>
 
